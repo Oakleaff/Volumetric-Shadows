@@ -1,0 +1,12 @@
+{
+  "$GMShader":"",
+  "%Name":"shdShadowPass",
+  "name":"shdShadowPass",
+  "parent":{
+    "name":"Processing",
+    "path":"folders/Shaders/Processing.yy",
+  },
+  "resourceType":"GMShader",
+  "resourceVersion":"2.0",
+  "type":1,
+}
