@@ -448,6 +448,7 @@
     {"id":{"name":"VertexFunctions","path":"scripts/VertexFunctions/VertexFunctions.yy",},},
     {"id":{"name":"shdDefault","path":"shaders/shdDefault/shdDefault.yy",},},
     {"id":{"name":"shdDefaultLit","path":"shaders/shdDefaultLit/shdDefaultLit.yy",},},
+    {"id":{"name":"shdLinearBlur","path":"shaders/shdLinearBlur/shdLinearBlur.yy",},},
     {"id":{"name":"shdScreenSpaceFog","path":"shaders/shdScreenSpaceFog/shdScreenSpaceFog.yy",},},
     {"id":{"name":"shdShadowPass","path":"shaders/shdShadowPass/shdShadowPass.yy",},},
     {"id":{"name":"shdSky","path":"shaders/shdSky/shdSky.yy",},},

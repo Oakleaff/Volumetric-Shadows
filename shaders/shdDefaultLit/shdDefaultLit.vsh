@@ -12,15 +12,12 @@ varying vec3	v_vPosition;
 varying vec4	v_vVertexColour;				
 varying vec3	v_vCamPosition;
 varying vec4	v_vShadowCoord[3];
-varying float	v_vDepthValue;
 varying vec3	v_vLocalNormal;
 varying vec3	v_vLocalPosition;
 
 uniform vec4	uColour;
 
-uniform vec3	uCamPosition;
-uniform float	uCamNear;
-uniform float	uCamFar;
+
 
 uniform mat4	uDepthMatrix[3];	// VP matrix of the shadow projection cameras
 
@@ -50,13 +47,7 @@ void main()
 	v_vPosition = worldPos.xyz;
 	gl_Position = gm_Matrices[MATRIX_WORLD_VIEW_PROJECTION] * object_space_pos;
 	
-	//v_vCamVector = normalize( uCamPosition - worldPos );
-	v_vCamPosition = uCamPosition;
-	
-	// Camera depth
-	float zz		= ( gm_Matrices[MATRIX_WORLD_VIEW] * object_space_pos ).z;
-	v_vDepthValue	= 1.0 - ( zz - uCamNear ) / ( uCamFar - uCamNear );
-   
+
 	v_vLocalNormal		= in_Normal;
 	v_vLocalPosition	= in_Position;
 	

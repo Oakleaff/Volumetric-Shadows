@@ -10,9 +10,7 @@ varying vec3	v_vNormal;
 varying vec3	v_vPosition;
 varying vec3	v_vLocalNormal;
 varying vec3	v_vLocalPosition;
-varying vec3	v_vCamPosition;
 varying vec4	v_vShadowCoord[3];
-varying float	v_vDepthValue;
 
 // Shadows
 uniform float		uEnableShadows;				// Toggle shadows on/off
@@ -36,6 +34,11 @@ const int		cMaxLights = 24;
 // Material
 uniform vec4		uFadeColour;
 uniform float		uTexCoord[4];
+
+// Camera
+uniform vec3	uCamPosition;
+uniform float	uCamNear;
+uniform float	uCamFar;
 
 	
 float inverse_pow( float a, float b ) {
@@ -105,7 +108,7 @@ float get_smooth_shadow( sampler2D shadowMap, int plane, vec2 coord, float curre
 vec4 get_lighting( vec3 worldPos, vec3 normal ) {
 	
 	vec4 lightColour	= uAmbientColour;
-	vec3 camVector		= normalize( v_vCamPosition - worldPos );
+	vec3 camVector		= normalize( uCamPosition - worldPos );
 	
 	// Directional lighting
 	normal *= !gl_FrontFacing ? -1.0 : 1.0;
@@ -219,7 +222,8 @@ void main()
 	gl_FragData[0] = outColour;
 	
 	// Depth value
-	gl_FragData[1] = vec4( pack_depth( v_vDepthValue ), 1.0 );
+	float depth		= 1.0 - ( distance( uCamPosition, v_vPosition ) - uCamNear ) / ( uCamFar - uCamNear );
+	gl_FragData[1] = vec4( pack_depth( depth ), 1.0 );
 	
 	
 	

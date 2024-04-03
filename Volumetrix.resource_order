@@ -380,6 +380,7 @@
     {"name":"VertexFunctions","order":2,"path":"scripts/VertexFunctions/VertexFunctions.yy",},
     {"name":"shdDefault","order":1,"path":"shaders/shdDefault/shdDefault.yy",},
     {"name":"shdDefaultLit","order":3,"path":"shaders/shdDefaultLit/shdDefaultLit.yy",},
+    {"name":"shdLinearBlur","order":1,"path":"shaders/shdLinearBlur/shdLinearBlur.yy",},
     {"name":"shdSky","order":2,"path":"shaders/shdSky/shdSky.yy",},
     {"name":"texGrid","order":1,"path":"sprites/texGrid/texGrid.yy",},
   ],

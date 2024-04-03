@@ -136,6 +136,8 @@ function update_shader_parameters( shader = shdDefault, camera = Camera ) {
 			array_push( frustum_points, p2.x, p2.y, p2.z );
 			array_push( frustum_points, p3.x, p3.y, p3.z );
 			shader_set_f_array( "uFrustumPoints", frustum_points );
+			
+			
 		
 			// Lighting
 			if ( global.updateShaderFlags.lighting ) {

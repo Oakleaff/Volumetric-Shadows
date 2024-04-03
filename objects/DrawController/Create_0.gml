@@ -12,18 +12,54 @@ view_visible[0] = true;
 defaultBuffer	= -1;
 depthBuffer		= -1;
 
-
 fogBuffer		= -1;
 fogBufferScale	= 2.0;
+fogBufferScaleCheck	= fogBufferScale;
 
 // Toggle debug drawing
+drawFog			= true;
+enableShadows		= true;
+
 drawDebug		= true;
 drawDepthBuffer = false;
 drawShadowMaps	= false;
 
-show_debug_overlay( drawDebug );
+sampleNoise		= 1.0;
+useBlueNoise	= 1.0;
+shadowPower		= 2.0;
+shadowTreshold	= 0.2;
 
-// Rendering flags -- unused in the demo
+
+drawBlend	= true;
+drawBlur	= true;
+blurRadius	= 5.0;
+
+// Debug view
+dbg_view( "Parameters", true, window_get_width() - 300, 10, 300, 320 );
+
+dbg_checkbox( ref_create( self, "drawFog" ), "Fog on" );
+dbg_checkbox( ref_create( self, "enableShadows" ), "Shadows on" );
+
+dbg_slider( ref_create( self, "shadowPower" ), 1.0, 10.0, "Shadow power" );
+dbg_slider( ref_create( self, "shadowTreshold" ), 0.0, 1.0, "Shadow treshold" );
+
+dbg_slider_int( ref_create( self, "fogBufferScale" ), 1, 16, "Fog buffer scale" );
+
+dbg_checkbox( ref_create( self, "drawBlur" ), "Blur" );
+dbg_slider_int( ref_create( self, "blurRadius" ), 1.0, 20.0, "Blur radius" );
+
+dbg_checkbox( ref_create( self, "drawBlend" ), "Additive blend" );
+
+dbg_checkbox( ref_create( self, "useBlueNoise" ),	"Use blue noise" );
+dbg_checkbox( ref_create( self, "sampleNoise" ),	"Use noise for fog volume" );
+
+dbg_color( ref_create( Level, "fogColour" ), "Fog Colour" );
+
+
+
+
+
+// Rendering flags -- unused in this demo
 enum RENDER_FLAG {	
 					None			= 0,
 					Default			= 1, 
@@ -48,16 +84,13 @@ function render_instances( shadow_pass = false ) {
 	
 	if ( shadow_pass ) {
 		
-		with ( Level )	if  ( castShadows )	render();
 		with ( oShape ) if  ( castShadows )	render();
-		
 		return;
 	}
 	
 	/// @function do_instance_render();
 	static do_instance_render = function() {
 		
-		with ( Level )		render();
 		with ( oShape )		render();
 		
 	}
@@ -67,8 +100,6 @@ function render_instances( shadow_pass = false ) {
 	shader_set_ext( shdDefaultLit );
 	shader_set_f_array( "uTexCoord", Level.texture_uv );
 	
-	
-
 	camera_apply( Camera.camera );
 	
 		do_instance_render();

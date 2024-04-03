@@ -4,6 +4,12 @@
 var _width	= window_get_width();
 var _height = window_get_height();
 
+if ( fogBufferScaleCheck != fogBufferScale ) {
+	fogBufferScaleCheck = fogBufferScale;
+	
+	surface_free( fogBuffer );
+}
+
 // Init rendering buffers and set them as render targets for shader_set_ext()
 if ( !surface_exists( defaultBuffer ))		{
 	defaultBuffer = surface_create( _width, _height );

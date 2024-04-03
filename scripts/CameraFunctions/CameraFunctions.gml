@@ -229,24 +229,26 @@ function camera_update() {
 		zmove = 0;
 		
 		// Rotation
-		if ( input_check_pressed( "camera_rotate" )) {
-			mousePosition.x = window_mouse_get_x();
-			mousePosition.y = window_mouse_get_y();
-		}
+		if ( !is_mouse_over_debug_overlay() ) {
+			if ( input_check_pressed( "camera_rotate" )) {
+				mousePosition.x = window_mouse_get_x();
+				mousePosition.y = window_mouse_get_y();
+			}
 		
-		if ( input_check( "camera_rotate" )) {
-			xmove = window_mouse_get_x() - mousePosition.x;
-			ymove = window_mouse_get_y() - mousePosition.y;
+			if ( input_check( "camera_rotate" )) {
+				xmove = window_mouse_get_x() - mousePosition.x;
+				ymove = window_mouse_get_y() - mousePosition.y;
 		
-			mousePosition.x = window_mouse_get_x();
-			mousePosition.y = window_mouse_get_y();
-		}
-		else {
-			mousePosition.x = window_mouse_get_x();
-			mousePosition.y = window_mouse_get_y();
+				mousePosition.x = window_mouse_get_x();
+				mousePosition.y = window_mouse_get_y();
+			}
+			else {
+				mousePosition.x = window_mouse_get_x();
+				mousePosition.y = window_mouse_get_y();
 			
-			xmove = -5.0 * ( input_check( "aim_left" ) -	input_check( "aim_right" ));
-			ymove = -3.0 * ( input_check( "aim_up" ) -		input_check( "aim_down" ));
+				xmove = -5.0 * ( input_check( "aim_left" ) -	input_check( "aim_right" ));
+				ymove = -3.0 * ( input_check( "aim_up" ) -		input_check( "aim_down" ));
+			}
 		}
 		
 		moveTarget.targetRotation.Rotate_y( -ymove * 0.3, true );

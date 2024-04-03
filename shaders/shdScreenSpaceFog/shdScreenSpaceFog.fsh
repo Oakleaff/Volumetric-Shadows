@@ -15,6 +15,10 @@ uniform float		uTexCoord[4];
 uniform sampler2D	uNoiseTexture;
 //uniform vec4		uColour;
 
+// Fog
+uniform float uFogStart;
+uniform float uFogEnd;
+
 // Lighting
 uniform vec3	uLightDirection;
 uniform vec4	uLightColour;
@@ -32,6 +36,9 @@ const int			cMaxCascades	= 3;
 
 uniform float		uShadowPower;				// Power to increase shadow strength
 uniform float		uShadowTreshold;			// Smoothstep treshold for maximum shadow strength
+
+uniform float uSampleNoise;
+uniform float uUseBlueNoise;
 
 const float cCamDistanceFactor	= 2.0;
 const int cSampleCount			= 24;
@@ -73,13 +80,17 @@ void main()
 	// Sample blue noise
 	vec2 blueNoiseUv = mod( gl_FragCoord.xy, 128.0 ) / 128.0;
 	float blueNoise = texture2D( uNoiseTexture, get_texture_coord( blueNoiseUv, uTexCoord )).b;
+	if ( uUseBlueNoise == 0.0 ) blueNoise = 0.5;
 	
 	vec4 fragColour = texture2D( gm_BaseTexture, v_vTexCoord );
-	float fragDepth = min( get_depth( fragColour.rgb ) * cCamDistanceFactor, 1.0 );
+	float fragDepth = min( get_depth( fragColour.rgb ), 1.0 );
 	
 	vec3 viewRay		= normalize( v_vViewRay );
-	vec3 rayEndPosition = v_vCamPosition + ( viewRay * uCamFar * fragDepth ) / cCamDistanceFactor;
+	float fragDistance	= mix( uCamNear, uCamFar / cCamDistanceFactor, fragDepth );		// Limit fog by cCamDistanceFactor
+	vec3 rayEndPosition = v_vCamPosition + viewRay * fragDistance;
 
+	float baseFogValue = clamp( ( fragDistance - uFogStart ) / ( uFogEnd - uFogStart ), 0.0, 1.0 );
+	
 	
 	// Shadow sampling
 	int		plane = -1;
@@ -96,31 +107,30 @@ void main()
 	
 	// Noise sampling
 	float noise_value, sample_value, xy_value, yz_value, xz_value;
-	float baseSampleValue = fragDepth * cSampleStep;
+	float baseSampleValue = cSampleStep;
 
 	vec4 outValue = vec4( vec3( 0.0 ), 1.0 );
 	
 	// Offset ray start position by blue noise
-	
 	n = cSampleStep * blueNoise;
+	
 	for ( int i = 0; i < cSampleCount; i ++ ) {
 		
-
-		vec3 worldPos = mix( v_vCamPosition, rayEndPosition, n );
+		vec3 worldPos = mix( v_vCamPosition, rayEndPosition, min( n, 1.0 ));
 		n += cSampleStep;
 		
 		sample_value = baseSampleValue;
 		
 		// Noise sampling
-		//xy_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.y ) * 0.0011, uTexCoord )).r;
-		//xz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.z ) * 0.0007, uTexCoord )).g;
-		//yz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.y, worldPos.z ) * 0.0009, uTexCoord )).g;
+		if ( uSampleNoise == 1.0 ) {
+			xy_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.y ) * 0.00051 * 0.5, uTexCoord )).r;
+			xz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.z ) * 0.00063 * 0.5, uTexCoord )).r;
+			yz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.y, worldPos.z ) * 0.00047 * 0.5, uTexCoord )).r;
 		
-		//noise_value		= xy_value * xz_value * yz_value;
-		//sample_value	*= inverse_pow( noise_value, 5.0 );
-		sample_value	= max( sample_value, cSampleStep * 0.2 );
-		
-		//if ( sample_value < 0.01 ) continue;
+			noise_value		= xy_value * xz_value * yz_value;
+			sample_value	*= inverse_pow( noise_value, 10.0 );
+			sample_value	= max( sample_value, cSampleStep * 0.2 );
+		}
 		
 		// Shadows
 		// Choose closest shadow cascade
@@ -153,7 +163,7 @@ void main()
 				// Depth in shadow map space
 				linear_depth		= shadow_coord.z / shadow_coord.w;
 
-				if ( plane == 0 ) depth_bias = 0.0;//005;
+				if ( plane == 0 ) depth_bias = 0.0;
 				if ( plane == 1 ) depth_bias = 0.0;//001;
 				if ( plane == 2 ) depth_bias = 0.0;//0001;
 				
@@ -169,7 +179,6 @@ void main()
 				
 				shadow = shadow_depth < linear_depth - bias ? 1.0 : 0.0;
 				
-			
 				shadowedSamples += shadow;
 				
 				// Debug
@@ -190,11 +199,12 @@ void main()
 		
 	}
 	
-	float shadowedValue = shadowedSamples * cSampleStep;						// Percentage of shadowed samples out of all <cSampleCount> samples
+	// Percentage of shadowed samples out of all <cSampleCount> samples
+	float shadowedValue = shadowedSamples * cSampleStep;	
+	
+	// Control shadow power	
 	shadowedValue		= inverse_pow( shadowedValue, uShadowPower );			// Control shadow strength
 	shadowedValue		= smoothstep( 0.0, uShadowTreshold, shadowedValue );	// Control the treshold for maximum shadow strength
-	
-	//total_value *= 1.0 - shadowedValue;						// Multiply the total fog value by the inverse of the shadowed value
 	
 	// Fog colour by light colour
 	float val		= max( 0.0, dot( viewRay, -uLightDirection ));
@@ -203,7 +213,10 @@ void main()
 	// Fade lit fog colour to shadowed fog (ambient) colour by the shadowed value
 	fogColour = mix( fogColour, uAmbientColour.rgb, shadowedValue );
 	
-	vec4 outColour = vec4( fogColour.rgb, total_value );
+	// Multiply by the fragment base fog value
+	total_value *= baseFogValue;
+
+	vec4 outColour = vec4( fogColour, total_value );
 	
 	// Debug output
 	//outColour = outValue;
@@ -216,5 +229,8 @@ void main()
 	//if ( plane == 2 ) outColour = vec4( 0.0, 0.0, 1.0, 1.0 );
 
 	gl_FragColor = outColour; 
+	
+	// Debug depth
+	//gl_FragColor = vec4( vec3( baseFogValue ), 1.0 ); 
 	
 }

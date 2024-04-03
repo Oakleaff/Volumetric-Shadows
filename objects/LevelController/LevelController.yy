@@ -27,9 +27,9 @@
   "physicsShapePoints":[],
   "physicsStartAwake":true,
   "properties":[
-    {"$GMObjectProperty":"","%Name":"skyColour0","filters":[],"listItems":[],"multiselect":false,"name":"skyColour0","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FFE54C00","varType":7,},
-    {"$GMObjectProperty":"","%Name":"skyColour1","filters":[],"listItems":[],"multiselect":false,"name":"skyColour1","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FFFFCC65","varType":7,},
-    {"$GMObjectProperty":"","%Name":"fogColour","filters":[],"listItems":[],"multiselect":false,"name":"fogColour","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FFFFFFFF","varType":7,},
+    {"$GMObjectProperty":"","%Name":"skyColour0","filters":[],"listItems":[],"multiselect":false,"name":"skyColour0","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FF990019","varType":7,},
+    {"$GMObjectProperty":"","%Name":"skyColour1","filters":[],"listItems":[],"multiselect":false,"name":"skyColour1","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FF992D90","varType":7,},
+    {"$GMObjectProperty":"","%Name":"fogColour","filters":[],"listItems":[],"multiselect":false,"name":"fogColour","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FFFFBF65","varType":7,},
     {"$GMObjectProperty":"","%Name":"lightColour","filters":[],"listItems":[],"multiselect":false,"name":"lightColour","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FFE5FFFF","varType":7,},
     {"$GMObjectProperty":"","%Name":"ambientColour","filters":[],"listItems":[],"multiselect":false,"name":"ambientColour","rangeEnabled":false,"rangeMax":10.0,"rangeMin":0.0,"resourceType":"GMObjectProperty","resourceVersion":"2.0","value":"$FF4C262C","varType":7,},
   ],
