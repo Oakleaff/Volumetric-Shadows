@@ -33,69 +33,63 @@ function animcurve_evaluate( curve, channel, time ){
 
 }
 
-/// @function array_clone( array ) {
-function array_clone( array ) {
 
-	var new_array = [];
+#region Arrays
+
+	/// @function array_clone( array ) {
+	function array_clone( array ) {
+
+		var new_array = [];
 	
-	array_copy( new_array, 0, array, 0, array_length( array ));
+		array_copy( new_array, 0, array, 0, array_length( array ));
 	
-	return new_array;
+		return new_array;
 
 
-}
-
-/// @function array_find_value_index( array, val ) {
-function array_find_value_index( array, value ) {
-	
-	var __len = array_length( array );
-	if ( __len == 0 ) return -1;
-	
-	var __i;
-	for ( __i = 0; __i < __len; __i ++ ) {
-		var val = array[ __i ];
-		if ( val == value ) return __i;
 	}
-	
-	return -1;
-}
 
-/// @function array_to_ds_list( array ) {
-function array_to_ds_list( array ) {
+	/// @function array_find_value_index( array, val ) {
+	function array_find_value_index( array, value ) {
+	
+		var __len = array_length( array );
+		if ( __len == 0 ) return -1;
+	
+		var __i;
+		for ( __i = 0; __i < __len; __i ++ ) {
+			var val = array[ __i ];
+			if ( val == value ) return __i;
+		}
+	
+		return -1;
+	}
 
-	var list	= ds_list_create();
-	var num		= array_length( array );
-	for ( var n = 0; n < num; n ++ ) ds_list_add( list, array[n] );
-	
-	return list;
-	
-	
-}
+	/// @function array_to_ds_list( array ) {
+	function array_to_ds_list( array ) {
 
-/// @function array_last( array ) {
-function array_last( array ) {
+		var list	= ds_list_create();
+		var num		= array_length( array );
+		for ( var n = 0; n < num; n ++ ) ds_list_add( list, array[n] );
+	
+		return list;
+	
+	
+	}
 
-	return array[ array_length( array ) - 1 ];
-}
+	/// @function array_last( array ) {
+	function array_last( array ) {
 
-/// @function array_random( array ) {
-function array_random( array ) {
-	
-	return array[ irandom( array_length( array ) - 1 ) ];
-	
-}
+		return array[ array_length( array ) - 1 ];
+	}
 
-/// @function ds_list_to_array( list ){
-function ds_list_to_array( list ) {
+	/// @function array_random( array ) {
+	function array_random( array ) {
+	
+		return array[ irandom( array_length( array ) - 1 ) ];
+	
+	}
 
-	var array	= [];
-	var num		= ds_list_size( list );
-	for ( var n = 0; n < num; n ++ ) array[n] = list[| n ];
-	
-	return array;
-	
-	
-}
+#endregion
+
 
 /// @function avg( num1, num2, num3... );
 function avg() {
@@ -156,33 +150,180 @@ function clamp01( value ) {
 	
 }
 
-
-
-
-
-/// @function ds_list_remove( list, pos );
-/// @param list
-/// @param pos
-function ds_list_remove( list, pos = 0 ) {
+/// @function define_value( val, default )
+function define_value( val, def ) {
 	
-	var val = list[| pos ];
-	ds_list_delete( list, pos );
-		
+	if ( is_undefined( val )) return def;
 	return val;
 }
 
-/// @function ds_list_reverse( list )
-function ds_list_reverse( list ) {
+/// @function draw_self_ext
+function draw_self_ext( _spr = sprite_index, _img = image_index, _x = x, _y = y, _xscale = image_xscale, _yscale = image_yscale, _rot = image_angle, _col = image_blend, _alpha = image_alpha ) {
+
+	draw_sprite_ext( _spr, _img, _x, _y, _xscale, _yscale, _rot, _col, _alpha );
+
+}
+
+/// @function draw_sprite_ext_outline
+/// @param sprite
+/// @param image
+/// @param x
+/// @param y
+/// @param xscale
+/// @param yscale
+/// @param rot
+/// @param col
+/// @param alpha
+/// @param outlinecolour
+/// @param outlineAlpha
+/// @param outlineShape
+function draw_sprite_ext_outline( sprite, image, x, y, xscale = 1.0, yscale = 1.0, rot = 0.0, col = c_white, alpha = 1.0, outlineCol = c_black, outlineAlpha = 1, shape = 1 ) {
 	
-	var _len = ds_list_size( list );
+	var a;
+	
+	gpu_set_fog( true, outlineCol, 0, 0 );
+	
+	var step = shape ? 45 : 90;
+	
+	for ( a = 0; a < 360; a += step ) {
+		var xx = x + round( lengthdir_x( 1.1, a ));
+		var yy = y + round( lengthdir_y( 1.1, a ));
+	
+		draw_sprite_ext( sprite, image, xx, yy, xscale, yscale, rot, outlineCol, outlineAlpha );
+	}
+	
+	gpu_set_fog( false, outlineCol, 0, 0 );
+	
+	gpu_set_zfunc( cmpfunc_greaterequal );
+	draw_sprite_ext( sprite, image, x, y, xscale, yscale, rot, col, alpha );
+	gpu_set_zfunc( cmpfunc_lessequal );
+}
 
-	for( var i = _len - 1; i >= 0; i --) {
-	    ds_list_add( list, list[| i] );
+
+/// @param x
+/// @param y
+/// @param text
+/// @param col
+/// @param alpha
+/// @param outlinecolour
+/// @param outlineThickness
+/// @param outlineAlpha
+/// @param outlineShape
+function draw_text_outline_ext( x, y, text, col = c_white, alpha = 1, outlineCol = c_black, outlineThick = 1, outlineAlpha = 1, shape = 1 ) {
+	
+	var a, t;
+
+	var step = shape ? 45 : 90;
+	
+	//gpu_set_fog( true, outlineCol, 0, 0 );
+	draw_set_colour( outlineCol );
+	for ( t = 0; t < outlineThick; t ++ ) {
+		for ( a = 0; a < 360; a += step ) {
+			var xx = x + round( lengthdir_x( t + 1.1, a ));
+			var yy = y + round( lengthdir_y( t + 1.1, a ));
+	
+			draw_text( xx, yy, text );
+		}
+	}
+	//gpu_set_fog( false, outlineCol, 0, 0 );
+	draw_set_colour( col );
+	draw_text( x, y, text );
+	draw_set_colour( c_white );
+}
+
+
+#region Ds lists
+
+	/// @function ds_list_remove( list, pos );
+	/// @param list
+	/// @param pos
+	function ds_list_remove( list, pos = 0 ) {
+	
+		var val = list[| pos ];
+		ds_list_delete( list, pos );
+		
+		return val;
 	}
 
-	repeat( _len ) {
-	    ds_list_delete( list, 0 );
+	/// @function ds_list_reverse( list )
+	function ds_list_reverse( list ) {
+	
+		var _len = ds_list_size( list );
+
+		for( var i = _len - 1; i >= 0; i --) {
+		    ds_list_add( list, list[| i] );
+		}
+
+		repeat( _len ) {
+		    ds_list_delete( list, 0 );
+		}
 	}
+
+	/// @function ds_list_to_array( list ){
+	function ds_list_to_array( list ) {
+
+		var array	= [];
+		var num		= ds_list_size( list );
+		for ( var n = 0; n < num; n ++ ) array[n] = list[| n ];
+	
+		return array;
+	}
+
+#endregion
+/// @function collision_sweep( x1, y1, x2, y2, rad, obj ) {
+function collision_sweep( x1, y1, x2, y2, rad, obj ) {
+	
+	//var mask = mask_index;
+	var w = rad; //sprite_get_width( mask ) * image_xscale * 0.5;
+	var h = rad; //sprite_get_height( mask ) * image_yscale * 0.5;
+	
+	//var len			= point_distance( x1, y1, x2, y2 );
+	//var dir			= point_direction( x1, y1, x2, y2 );
+	var collision	= false;
+	
+	var ax1 = x1 - w;
+	var ay1 = y1 - h;
+	var ax2 = x1 + w;
+	var ay2 = y1 - h;
+	var ax3 = x1 + w;
+	var ay3 = y1 + h;
+	var ax4 = x1 - w;
+	var ay4 = y1 + h;
+	
+	var bx1 = x2 - w
+	var by1 = y2 - h;
+	var bx2 = x2 + w;
+	var by2 = y2 - h;
+	var bx3 = x2 + w
+	var by3 = y2 + h;
+	var bx4 = x2 - w;
+	var by4 = y2 + h;
+	
+	if ( collision_line( ax1, ay1, bx1, by1, obj, true, true )) return true;
+	if ( collision_line( ax2, ay2, bx2, by2, obj, true, true )) return true;
+	if ( collision_line( ax3, ay3, bx3, by3, obj, true, true )) return true;
+	if ( collision_line( ax4, ay4, bx4, by4, obj, true, true )) return true;
+
+	
+	//var i, xx, yy;
+	//if ( collision_line( x1, y1, x2, y2, obj, true, true )) {
+		
+	//	for ( i = 0; i <= len; i += w * 0.5 ) {
+		
+	//		xx = x1 + lengthdir_x( i, dir );
+	//		yy = y1 + lengthdir_y( i, dir );
+		
+	//		if ( place_meeting( xx, yy, obj )) {
+	//			collision = true;
+	//			log( object_get_name( instance_place( xx, yy, obj ).object_index ));
+	//			break;
+	//		}
+		
+	//	}
+	//}
+	
+	return collision;
+
 }
 
 /// @function find_lca( array0, array1 )
@@ -217,119 +358,116 @@ function frac_get( num, index ) {
 	
 }
 
-/// @function instance_check( inst )
-/// @param instance
-function instance_check( inst ) {
-	
-	if ( inst == noone || !instance_exists( inst )) return false;
-	
-	return true;
-	
-}
+#region Instances
 
-/// @description instance_nearest_nth(x, y, obj, n);
-/// @param	x
-/// @param  y
-/// @param  obj
-/// @param  n
-function instance_nearest_nth( pointx, pointy, object, n ) {
+	/// @function instance_check( inst )
+	/// @param instance
+	function instance_check( inst ) {
 	
-	var list, nearest;
-	n = min( max( 1, n ), instance_number( object ));
-	if ( n == 1 ) {
-		return ( instance_nearest( pointx, pointy, object ));
+		if ( inst == noone || !instance_exists( inst )) return false;
+	
+		return true;
+	
 	}
+
+	/// @description instance_nearest_nth(x, y, obj, n);
+	/// @param	x
+	/// @param  y
+	/// @param  obj
+	/// @param  n
+	function instance_nearest_nth( pointx, pointy, object, n ) {
+	
+		var list, nearest;
+		n = min( max( 1, n ), instance_number( object ));
+		if ( n == 1 ) {
+			return ( instance_nearest( pointx, pointy, object ));
+		}
 		
-	list = ds_priority_create();
-	nearest = noone;
-	with ( object ) {
-		ds_priority_add( list, id, square_distance(x, y, pointx, pointy));
+		list = ds_priority_create();
+		nearest = noone;
+		with ( object ) {
+			ds_priority_add( list, id, square_distance(x, y, pointx, pointy));
+		}
+		repeat (n) {
+			nearest = ds_priority_delete_min(list);
+		}
+		ds_priority_destroy(list);
+		return ( nearest );
 	}
-	repeat (n) {
-		nearest = ds_priority_delete_min(list);
-	}
-	ds_priority_destroy(list);
-	return ( nearest );
-}
 
-/// @description instance_nearest_3d( x, y, z, obj, n);
-function instance_nearest_3d( pointx, pointy, pointz, object, n = 1 ) {
+	/// @description instance_nearest_3d( x, y, z, obj, n);
+	function instance_nearest_3d( pointx, pointy, pointz, object, n = 1 ) {
 	
-	var list, nearest;
-	n = clamp( n, 1, instance_number( object ));
-	//if ( instance_number( object ) == 1 ) {
-	//	return ( object );
-	//}
+		var list, nearest;
+		n = clamp( n, 1, instance_number( object ));
+		//if ( instance_number( object ) == 1 ) {
+		//	return ( object );
+		//}
 		
-	list	= ds_priority_create();
-	nearest = noone;
-	with ( object ) {
-		ds_priority_add( list, id, square_distance_3d( x, y, z, pointx, pointy, pointz ));
+		list	= ds_priority_create();
+		nearest = noone;
+		with ( object ) {
+			ds_priority_add( list, id, square_distance_3d( x, y, z, pointx, pointy, pointz ));
+		}
+		repeat (n) {
+			nearest = ds_priority_delete_min(list);
+		}
+		ds_priority_destroy(list);
+		return ( nearest );
+
 	}
-	repeat (n) {
-		nearest = ds_priority_delete_min(list);
+
+	/// @description instance_create( x, y, object );
+	/// @param x1
+	/// @param y1
+	/// @param obj
+	function instance_create( xx, yy, obj ) {
+
+		return ( instance_create_depth( xx, yy, 0, obj ));
+
 	}
-	ds_priority_destroy(list);
-	return ( nearest );
-
-}
-
-/// @description instance_create( x, y, object );
-/// @param x1
-/// @param y1
-/// @param obj
-function instance_create( xx, yy, obj ) {
-
-	return ( instance_create_depth( xx, yy, 0, obj ));
-
-}
 
 
-/// @description instance_create( x, y, z, object );
-/// @param x1
-/// @param y1
-/// @param z1
-/// @param obj
-function instance_create_3d( x1, y1, z1, obj ) {
+	/// @description instance_create( x, y, z, object );
+	/// @param x1
+	/// @param y1
+	/// @param z1
+	/// @param obj
+	function instance_create_3d( x1, y1, z1, obj ) {
 
-	global.__z = z1;
+		global.__z = z1;
 	
-	var o = instance_create_depth( x1, y1, 0, obj );
-	o.z = global.__z;
+		var o = instance_create_depth( x1, y1, 0, obj );
+		o.z = global.__z;
 	
-	o.xstart = x1;
-	o.ystart = y1;
-	o.zstart = z1;
+		o.xstart = x1;
+		o.ystart = y1;
+		o.zstart = z1;
 
-	return ( o );
+		return ( o );
 
-}
-
-/// @function instance_get_root_parent( inst ) {
-function instance_get_root_parent( inst ) {
-	
-	if ( inst == noone ) return noone;
-
-	var obj = inst.object_index;
-	var par = object_get_parent( obj );
-	
-	if ( par == -100 ) return obj;			// No parent
-	
-	while ( object_get_parent( par ) >= 0 ) {
-		par = object_get_parent( par );
 	}
-	
-	return par;
-	
-}
 
-/// @function inverse_lerp( a, b, value )
-/// @param a
-/// @param b
-/// param value
-function inverse_lerp( a, b, value ){
-	return ( ( value - a ) / ( b -a ) );
-}
+	/// @function instance_get_root_parent( inst ) {
+	function instance_get_root_parent( inst ) {
+	
+		if ( inst == noone ) return noone;
+
+		var obj = inst.object_index;
+		var par = object_get_parent( obj );
+	
+		if ( par == -100 ) return obj;			// No parent
+	
+		while ( object_get_parent( par ) >= 0 ) {
+			par = object_get_parent( par );
+		}
+	
+		return par;
+	
+	}
+
+#endregion
+
 
 /// @function inverse_power( value, pow ) {
 function inverse_power( value, pow ) {
@@ -353,56 +491,69 @@ function is_one_of( ) {
 
 }
 
-/// @description lerp_delta( a, b, f, dt );
-/// @arg a	{float}	Source value
-/// @arg b	{float}	Target value
-/// @arg f	{float} Smooth amount
-/// @arg dt	{float}	Timestep
-function lerp_delta( a, b, f, dt ) {
+#region Lerp
+
+	/// @function inverse_lerp( a, b, value )
+	/// @param a
+	/// @param b
+	/// param value
+	function inverse_lerp( a, b, value ){
+		return ( ( value - a ) / ( b -a ) );
+	}
+
+	/// @description lerp_delta( a, b, f, dt );
+	/// @arg a	{float}	Source value
+	/// @arg b	{float}	Target value
+	/// @arg f	{float} Smooth amount
+	/// @arg dt	{float}	Timestep
+	function lerp_delta( a, b, f, dt ) {
 	
-	var _f = 1.0 - f;	// Additive inverse so 0 = source value & 1 = target value
-	//return ( lerp( a, b,  1.0 - power( _f, dt )));
-	return lerp( a, b,  1.0 - exp( -f * dt ));
+		var _f = 1.0 - f;	// Additive inverse so 0 = source value & 1 = target value
+		//return ( lerp( a, b,  1.0 - power( _f, dt )));
+		return lerp( a, b,  1.0 - exp( -f * dt ));
 
 
-}
+	}
 
-/// @function lerp_log( a, b, f, dt ) 
-function lerp_log( a, b, f, dt ) {
+	/// @function lerp_log( a, b, f, dt ) 
+	function lerp_log( a, b, f, dt ) {
 	
-	return lerp( a, b, power( 2, -f * dt ));
+		return lerp( a, b, power( 2, -f * dt ));
 	
 	
-}
+	}
 
-/// @function lerp_ext( a, b, amount, min, max );
-/// @param
-function lerp_ext( a, b, amount, _min, _max ){
+	/// @function lerp_ext( a, b, amount, min, max );
+	/// @param
+	function lerp_ext( a, b, amount, _min, _max ){
 
-	var diff = b - a;
+		var diff = b - a;
 	
-	var lerpDiff = diff * amount;
+		var lerpDiff = diff * amount;
 	
-	var lerpAmount = clamp( abs( lerpDiff ), _min, _max );
+		var lerpAmount = clamp( abs( lerpDiff ), _min, _max );
 	
-	return approach( a, b, lerpAmount );
+		return approach( a, b, lerpAmount );
 	
 
-}
+	}
 
-/// @description lerp_angle(angle1, angle2, amount);
-/// @param angle1
-/// @param  angle2
-/// @param  amount
-function lerp_angle() { 
-	var a1  = argument[0];
-	var a2  = argument[1];
-	var t   = argument[2];
+	/// @description lerp_angle(angle1, angle2, amount);
+	/// @param angle1
+	/// @param  angle2
+	/// @param  amount
+	function lerp_angle() { 
+		var a1  = argument[0];
+		var a2  = argument[1];
+		var t   = argument[2];
  
-	var diff = angle_difference(a1, a2);
-	return ( a1 - diff * t );
+		var diff = angle_difference(a1, a2);
+		return ( a1 - diff * t );
 
-}
+	}
+
+
+#endregion
 
 /// @function make_colour( r, g, b )
 function make_colour( r, g, b ) {
@@ -609,49 +760,69 @@ function generate_staticIdentifier() {
 	
 }
 
+#region Collisions
 
-/// @function lines_intersect(x1,y1,x2,y2,x3,y3,x4,y4,segment)
-//
-//  Returns a vector multiplier (t) for an intersection on the
-//  first line. A value of (0 < t <= 1) indicates an intersection 
-//  within the line segment, a value of 0 indicates no intersection, 
-//  other values indicate an intersection beyond the endpoints.
-//
-//      x1,y1,x2,y2     1st line segment
-//      x3,y3,x4,y4     2nd line segment
-//      segment         If true, confine the test to the line segments.
-//
-//  By substituting the return value (t) into the parametric form
-//  of the first line, the point of intersection can be determined.
-//  eg. x = x1 + t * (x2 - x1)
-//      y = y1 + t * (y2 - y1)
-//
-/// GMLscripts.com/license
-function lines_intersect( x1, y1, x2, y2, x3, y3, x4, y4, segment )
-{
-    var ua, ub, ud, ux, uy, vx, vy, wx, wy, _ud;
-    ua = 0;
-    ux = x2 - x1;
-    uy = y2 - y1;
-    vx = x4 - x3;
-    vy = y4 - y3;
-    wx = x1 - x3;
-    wy = y1 - y3;
+	/// @function lines_intersect(x1,y1,x2,y2,x3,y3,x4,y4,segment)
+	//
+	//  Returns a vector multiplier (t) for an intersection on the
+	//  first line. A value of (0 < t <= 1) indicates an intersection 
+	//  within the line segment, a value of 0 indicates no intersection, 
+	//  other values indicate an intersection beyond the endpoints.
+	//
+	//      x1,y1,x2,y2     1st line segment
+	//      x3,y3,x4,y4     2nd line segment
+	//      segment         If true, confine the test to the line segments.
+	//
+	//  By substituting the return value (t) into the parametric form
+	//  of the first line, the point of intersection can be determined.
+	//  eg. x = x1 + t * (x2 - x1)
+	//      y = y1 + t * (y2 - y1)
+	//
+	/// GMLscripts.com/license
+	function lines_intersect( x1, y1, x2, y2, x3, y3, x4, y4, segment ) {
+	    var ua, ub, ud, ux, uy, vx, vy, wx, wy, _ud;
+	    ua = 0;
+	    ux = x2 - x1;
+	    uy = y2 - y1;
+	    vx = x4 - x3;
+	    vy = y4 - y3;
+	    wx = x1 - x3;
+	    wy = y1 - y3;
 	
-    ud = vy * ux - vx * uy;
-    if (ud != 0) 
-    {
-		_ud = 1 / ud;
+	    ud = vy * ux - vx * uy;
+	    if (ud != 0) 
+	    {
+			_ud = 1 / ud;
 		
-        ua = ( vx * wy - vy * wx ) * _ud;
-        if ( segment ) 
-        {
-            ub = ( ux * wy - uy * wx ) * _ud;
-            if (ua < 0 || ua > 1 || ub < 0 || ub > 1) ua = 0;
-        }
-    }
-    return ua;
-}
+	        ua = ( vx * wy - vy * wx ) * _ud;
+	        if ( segment ) 
+	        {
+	            ub = ( ux * wy - uy * wx ) * _ud;
+	            if (ua < 0 || ua > 1 || ub < 0 || ub > 1) ua = 0;
+	        }
+	    }
+	    return ua;
+	}
+	
+	
+	/// @function line_intersect_rectangle( rx1, ry1, rx2, ry2, lx1, ly1, lx2, ly2, inside ) {
+	function line_intersect_rectangle( rx1, ry1, rx2, ry2, lx1, ly1, lx2, ly2, inside = true ) {
+	
+		if ( lines_intersect( rx1, ry1, rx2, ry1, lx1, ly1, lx2, ly2, true ) > 0 ) return true;
+		if ( lines_intersect( rx1, ry2, rx2, ry2, lx1, ly1, lx2, ly2, true ) > 0 ) return true;
+		if ( lines_intersect( rx1, ry1, rx1, ry2, lx1, ly1, lx2, ly2, true ) > 0 ) return true;
+		if ( lines_intersect( rx2, ry1, rx2, ry2, lx1, ly1, lx2, ly2, true ) > 0 ) return true;
+	
+		if ( inside ) {
+			if ( point_in_rectangle( lx1, ly1, rx1, ry1, rx2, ry2 )) return true;
+			if ( point_in_rectangle( lx2, ly2, rx1, ry1, rx2, ry2 )) return true;
+		}
+	
+		return false;
+	
+	}
+	
+#endregion
 
 
 // Return point POS along line segment defined by (x1, y1) (x2, y2)
@@ -661,7 +832,7 @@ function line_point( x1, y1, x2, y2, pos ) {
 	var xx = x1 + pos * ( x2 - x1 );
 	var yy = y1 + pos * ( y2 - y1 );
 
-	return new Vector3( xx, yy );
+	return [ xx, yy ];
 }
 
 /// @function line_nearest_point( x1, y1, x2, y2, px, py );
@@ -672,10 +843,8 @@ function line_point( x1, y1, x2, y2, pos ) {
 /// @param px	x point to check
 /// @param py	y point to check
 function line_nearest_point( x1, y1, x2, y2, px, py ) {
-	
-	static req = require( "Vectors" );
-	
-	var s	= new Vector3( x2 - x1, y2 - y1 ).normalized();
+		
+	var s	= new Vector3( x2 - x1, y2 - y1 ).Normalized();
 	var dx	= s.x;
 	var dy	= s.y;
 
@@ -698,8 +867,8 @@ function line_nearest_point_segment( x1, y1, x2, y2, px, py ) {
 	static AB = new Vector3();
 	static AP = new Vector3();
 	
-	AB.set( x2 - x1, y2 - y1 );
-	AP.set( px - x1, py - y1 );
+	AB.Set( x2 - x1, y2 - y1 );
+	AP.Set( px - x1, py - y1 );
 	
 	var lengthSqrAB = AB.x * AB.x + AB.y * AB.y;
 	var t = ( AP.x * AB.x + AP.y * AB.y ) / lengthSqrAB;
@@ -717,64 +886,66 @@ function line_nearest_point_segment( x1, y1, x2, y2, px, py ) {
 /// @param pos		{Vec3}	World space position to check
 function vector_nearest_point_on_line( line_pos, line_dir, pos ) {
 	
-	static req = require( "Vectors" );
 	static v = new Vector3();
 	
-	if ( line_dir.sqr_magnitude() != 1.0 ) line_dir.normalize();
-	v.set( pos );
-	v.subtract( line_pos );
+	if ( line_dir.SqrMagnitude() != 1.0 ) line_dir.Normalize();
+	v.Set( pos );
+	v.Subtract( line_pos );
 	var d = vector_dot( v, line_dir );
 	
-	return line_pos.clone().add( line_dir.multiply( d ));
+	return line_pos.Clone().Add( line_dir.Multiply( d ));
 	
 }
 
+#region Paths
 
-/// @function path_create( points, closed, smooth ) {
-function path_create( points, closed = false, smooth = true ) {
+	/// @function path_create( points, closed, smooth ) {
+	function path_create( points, closed = false, smooth = true ) {
 
-	var pth = path_add();
-	path_set_closed( pth,	closed );
-	path_set_kind( pth,		smooth );
+		var pth = path_add();
+		path_set_closed( pth,	closed );
+		path_set_kind( pth,		smooth );
 
-	var point;
-	for ( var n = 0; n < array_length( points ); n ++ ) {
+		var point;
+		for ( var n = 0; n < array_length( points ); n ++ ) {
 		
-		point = points[n];
+			point = points[n];
 		
-		if ( is_struct( point )) {
-			path_add_point( pth, point.x, point.y, point.z );
+			if ( is_struct( point )) {
+				path_add_point( pth, point.x, point.y, point.z );
+			}
+			else path_add_point( pth, point[0], point[1], point[2] );
+		
+		
 		}
-		else path_add_point( pth, point[0], point[1], point[2] );
-		
-		
+
+		return pth;
+
 	}
 
-	return pth;
 
-}
-
-
-/// @function path_get_position( path, pos )
-function path_get_position( path, pos ) {
+	/// @function path_get_position( path, pos )
+	function path_get_position( path, pos ) {
 	
-	return [	path_get_x( path,		pos ),
-				path_get_y( path,		pos ),
-				path_get_speed( path,	pos ) ];
+		return [	path_get_x( path,		pos ),
+					path_get_y( path,		pos ),
+					path_get_speed( path,	pos ) ];
 			
 	
 	
-}
-/// @function path_get_point( path, num )
-function path_get_point( path, num ) {
+	}
+	/// @function path_get_point( path, num )
+	function path_get_point( path, num ) {
 	
-	return [	path_get_point_x( path,		num ),
-				path_get_point_y( path,		num ),
-				path_get_point_speed( path, num ) ];
+		return [	path_get_point_x( path,		num ),
+					path_get_point_y( path,		num ),
+					path_get_point_speed( path, num ) ];
 			
 	
 	
-}
+	}
+
+#endregion
 
 /// @function triangle_get_z( v0, v1, v2, px, py ) {
 function triangle_get_z( v1, v2, v3, px, py ) {
@@ -841,12 +1012,12 @@ function triangle_get_values( v1, v2, v3, px, py ) {
 }
 
 
-/// @function world_to_screen( x, y, z, view_mat, proj_mat, width, height );
+/// @function world_to_screen( x, y, z, viewMatrix, projMatrix, width, height );
 /// @param xx
 /// @param yy
 /// @param zz
-/// @param view_mat
-/// @param proj_mat
+/// @param viewMatrix
+/// @param projMatrix
 /// @param screen_width
 /// @param screen_height
 /*
@@ -857,23 +1028,23 @@ function triangle_get_values( v1, v2, v3, px, py ) {
     Script created by TheSnidr
     www.thesnidr.com
 */
-function world_to_screen( xx, yy, zz, view_mat = Camera.view_mat, proj_mat = Camera.proj_mat, width = window_get_width(), height = window_get_height() ) {
+function world_to_screen( xx, yy, zz, viewMatrix = Camera.viewMatrix, projMatrix = Camera.projMatrix, width = window_get_width(), height = window_get_height() ) {
 
 	var vec = new Vector3();
 
-	if ( proj_mat[15] == 0 ) {   //This is a perspective projection
+	if ( projMatrix[15] == 0 ) {   //This is a perspective projection
 		
-	    var w = view_mat[2] * xx + view_mat[6] * yy + view_mat[10] * zz + view_mat[14];
+	    var w = viewMatrix[2] * xx + viewMatrix[6] * yy + viewMatrix[10] * zz + viewMatrix[14];
 	    // If you try to convert the camera's "from" position to screen space, you will
 	    // end up dividing by zero (please don't do that)
 	    //if (w <= 0) return [-1, -1];
 	    if ( w <= 0 ) vec.z = -1; //return new Vector3( -1, -1 );
 		
-	    var cx = proj_mat[8] + proj_mat[0] * (view_mat[0] * xx + view_mat[4] * yy + view_mat[8] * zz + view_mat[12]) / w;
-	    var cy = proj_mat[9] + proj_mat[5] * (view_mat[1] * xx + view_mat[5] * yy + view_mat[9] * zz + view_mat[13]) / w;
+	    var cx = projMatrix[8] + projMatrix[0] * (viewMatrix[0] * xx + viewMatrix[4] * yy + viewMatrix[8] * zz + viewMatrix[12]) / w;
+	    var cy = projMatrix[9] + projMatrix[5] * (viewMatrix[1] * xx + viewMatrix[5] * yy + viewMatrix[9] * zz + viewMatrix[13]) / w;
 	} else {    //This is an ortho projection
-	    var cx = proj_mat[12] + proj_mat[0] * (view_mat[0] * xx + view_mat[4] * yy + view_mat[8]  * zz + view_mat[12]);
-	    var cy = proj_mat[13] + proj_mat[5] * (view_mat[1] * xx + view_mat[5] * yy + view_mat[9]  * zz + view_mat[13]);
+	    var cx = projMatrix[12] + projMatrix[0] * (viewMatrix[0] * xx + viewMatrix[4] * yy + viewMatrix[8]  * zz + viewMatrix[12]);
+	    var cy = projMatrix[13] + projMatrix[5] * (viewMatrix[1] * xx + viewMatrix[5] * yy + viewMatrix[9]  * zz + viewMatrix[13]);
 	}
 
 	var rx = ( 0.5 + 0.5 * cx ) * width;
@@ -885,11 +1056,11 @@ function world_to_screen( xx, yy, zz, view_mat = Camera.view_mat, proj_mat = Cam
 	return vec;
 }
 
-/// @function screen_to_world(x, y, view_mat, proj_mat)
+/// @function screen_to_world(x, y, viewMatrix, projMatrix)
 /// @param x
 /// @param y
-/// @param view_mat
-/// @param proj_mat
+/// @param viewMatrix
+/// @param projMatrix
 /// @param screen_width
 /// @param screen_height
 /*
@@ -1009,73 +1180,77 @@ function string_fill( filler, str ) {
 	
 }
 
-/// @function matrix_transform( x, y, z, xrot, yrot, zrot, xscale, yscale, zscale);
-/// @param {Real|Array}	x_or_matrix
-/// @param				y
-/// @param				z
-/// @param				xrot
-/// @param				yrot
-/// @param				zrot
-/// @param				xscale
-/// @param				yscale
-/// @param				zscale
-function matrix_transform( xx = 0, yy = 0, zz = 0, xrot = 0, yrot = 0, zrot = 0, xscale = 1, yscale = 1, zscale = 1 ) {
+#region Matrices
 
-	var mat;
-	if ( is_array( xx ) && array_length( xx ) == 16 ) {
-		mat = xx;
+	/// @function matrix_transform( x, y, z, xrot, yrot, zrot, xscale, yscale, zscale);
+	/// @param {Real|Array}	x_or_matrix
+	/// @param				y
+	/// @param				z
+	/// @param				xrot
+	/// @param				yrot
+	/// @param				zrot
+	/// @param				xscale
+	/// @param				yscale
+	/// @param				zscale
+	function matrix_transform( xx = 0, yy = 0, zz = 0, xrot = 0, yrot = 0, zrot = 0, xscale = 1, yscale = 1, zscale = 1 ) {
+
+		var mat;
+		if ( is_array( xx ) && array_length( xx ) == 16 ) {
+			mat = xx;
+		}
+		else mat = matrix_build( xx, yy, zz, xrot, yrot, zrot, xscale, yscale, zscale );
+	
+		matrix_set( matrix_world, mat );
+
 	}
-	else mat = matrix_build( xx, yy, zz, xrot, yrot, zrot, xscale, yscale, zscale );
+
+	/// @function matrix_create()
+	function matrix_create( xx = 0, yy = 0, zz = 0, xrot = 0, yrot = 0, zrot = 0, xscale = 1, yscale = 1, zscale = 1 ) {
+
+		return matrix_build( xx, yy, zz, xrot, yrot, zrot, xscale, yscale, zscale );
+
+	}
+
+	/// @function matrix_transform_scale( x, y, z, xrot, yrot, zrot, xscale, yscale, zscale);
+	/// @param matrix
+	/// @param xscale
+	/// @param yscale
+	/// @param zscale
+	function matrix_transform_scale( mat = matrix_build_identity(), xscale = 1, yscale = undefined, zscale = undefined ) {
+
+		if ( is_undefined( yscale )) yscale = xscale;
+		if ( is_undefined( zscale )) zscale = xscale;
+
+		var _scale_matrix = matrix_build( 0, 0, 0, 0, 0, 0, xscale, yscale, zscale );
+
+		matrix_set( matrix_world, matrix_multiply( _scale_matrix, mat ));
+
+	}
+
+	/// @matrix_transform_quaternion( x, y, z, quat );
+	/// @param x
+	/// @param y
+	/// @param z
+	function matrix_transform_quaternion( xx = 0, yy = 0, zz = 0, quat ) {
 	
-	matrix_set( matrix_world, mat );
-
-}
-
-/// @function matrix_create()
-function matrix_create( xx = 0, yy = 0, zz = 0, xrot = 0, yrot = 0, zrot = 0, xscale = 1, yscale = 1, zscale = 1 ) {
-
-	return matrix_build( xx, yy, zz, xrot, yrot, zrot, xscale, yscale, zscale );
-
-}
-
-/// @function matrix_transform_scale( x, y, z, xrot, yrot, zrot, xscale, yscale, zscale);
-/// @param matrix
-/// @param xscale
-/// @param yscale
-/// @param zscale
-function matrix_transform_scale( mat = matrix_build_identity(), xscale = 1, yscale = undefined, zscale = undefined ) {
-
-	if ( is_undefined( yscale )) yscale = xscale;
-	if ( is_undefined( zscale )) zscale = xscale;
-
-	var _scale_matrix = matrix_build( 0, 0, 0, 0, 0, 0, xscale, yscale, zscale );
-
-	matrix_set( matrix_world, matrix_multiply( _scale_matrix, mat ));
-
-}
-
-/// @matrix_transform_quaternion( x, y, z, quat );
-/// @param x
-/// @param y
-/// @param z
-function matrix_transform_quaternion( xx = 0, yy = 0, zz = 0, quat ) {
+		var pos = matrix_build( xx, yy, zz, 0, 0, 0, 1, 1, 1 );
 	
-	var pos = matrix_build( xx, yy, zz, 0, 0, 0, 1, 1, 1 );
+		matrix_transform( matrix_multiply( quat.Matrix(), pos ));
 	
-	matrix_transform( matrix_multiply( quat.matrix(), pos ));
-	
-}
+	}
 	
 
-/// @function matrix_reset()
-function matrix_reset() {
+	/// @function matrix_reset()
+	function matrix_reset() {
 	
-	static mat = matrix_build_identity();
+		static mat = matrix_build_identity();
 	
-	matrix_set( matrix_world, mat );
+		matrix_set( matrix_world, mat );
 	
-}
+	}
 
+
+#endregion
 
 // Check all triangles of a polygon
 /// @function __point_in_polygon( px, py, polygon, bias ) {
@@ -1126,7 +1301,7 @@ function __point_in_polygon( px, py, polygon, bias = 1.0 ) {
 			pos.x += verts[n].x;
 			pos.y += verts[n].y;
 		}
-		pos.multiply( 1.0 / num );
+		pos.Multiply( 1.0 / num );
 			
 			
 		for ( var n = 0; n < num; n ++ ) {

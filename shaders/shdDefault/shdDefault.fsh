@@ -7,7 +7,6 @@ varying vec3 v_vPosition;
 
 
 // Material
-uniform vec4		uFadeColour;
 uniform float		uTexCoord[4];
 
 // texture coordinate scale
@@ -34,8 +33,6 @@ void main()
 	
 	if ( colour.a < 0.2 ) discard;
 	
-	// Fade colour
-	if ( uFadeColour.a > 0.0 ) colour.rgb = mix( colour.rgb, uFadeColour.rgb, uFadeColour.a );
-	
+
     gl_FragData[0] = colour;
 }

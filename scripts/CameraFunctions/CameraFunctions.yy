@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"CameraFunctions",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"CameraFunctions",
+  "parent":{
+    "name":"Libraries",
+    "path":"folders/Scripts/Libraries.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

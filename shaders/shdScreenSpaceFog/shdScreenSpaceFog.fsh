@@ -18,6 +18,7 @@ uniform sampler2D	uNoiseTexture;
 // Lighting
 uniform vec3	uLightDirection;
 uniform vec4	uLightColour;
+uniform vec4	uAmbientColour;
 
 // Shadows
 uniform float		uEnableShadows;				// Toggle shadows on/off
@@ -32,7 +33,7 @@ const int			cMaxCascades	= 3;
 uniform float		uShadowPower;				// Power to increase shadow strength
 uniform float		uShadowTreshold;			// Smoothstep treshold for maximum shadow strength
 
-const float cCamDistanceFactor	= 4.0;
+const float cCamDistanceFactor	= 2.0;
 const int cSampleCount			= 24;
 const float cSampleStep			= 1.0 / float( cSampleCount );
 
@@ -96,28 +97,27 @@ void main()
 	// Noise sampling
 	float noise_value, sample_value, xy_value, yz_value, xz_value;
 	float baseSampleValue = fragDepth * cSampleStep;
-	//float sampleStep = fragDepth / float( cSampleCount );
+
+	vec4 outValue = vec4( vec3( 0.0 ), 1.0 );
 	
-	vec4 outValue = vec4( 0.0 );
+	// Offset ray start position by blue noise
 	
 	n = cSampleStep * blueNoise;
-	
-	for ( int i = 1; i < cSampleCount; i ++ ) {
+	for ( int i = 0; i < cSampleCount; i ++ ) {
 		
-	
-	
+
 		vec3 worldPos = mix( v_vCamPosition, rayEndPosition, n );
 		n += cSampleStep;
 		
 		sample_value = baseSampleValue;
 		
 		// Noise sampling
-		xy_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.y ) * 0.00051 * 0.5, uTexCoord )).g;
-		xz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.z ) * 0.00063 * 0.5, uTexCoord )).g;
-		yz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.y, worldPos.z ) * 0.00047 * 0.5, uTexCoord )).g;
+		//xy_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.y ) * 0.0011, uTexCoord )).r;
+		//xz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.x, worldPos.z ) * 0.0007, uTexCoord )).g;
+		//yz_value = texture2D( uNoiseTexture, get_texture_coord( vec2( worldPos.y, worldPos.z ) * 0.0009, uTexCoord )).g;
 		
-		noise_value		= xy_value * xz_value * yz_value;
-		sample_value	*= inverse_pow( noise_value, 5.0 );
+		//noise_value		= xy_value * xz_value * yz_value;
+		//sample_value	*= inverse_pow( noise_value, 5.0 );
 		sample_value	= max( sample_value, cSampleStep * 0.2 );
 		
 		//if ( sample_value < 0.01 ) continue;
@@ -128,16 +128,17 @@ void main()
 
 			for ( p = 0; p < cMaxCascades; p += 1 ) {
 		
+				// World space to shadow map space
 				shadow_coord	= uDepthMatrix[p] * vec4( worldPos, 1.0 );
-			
-				// Get coordinate in shadow map space
-				shadowMapCoord.xy = shadow_coord.xy / shadow_coord.w * 0.5 + 0.5;
-				shadowMapCoord.z = shadow_coord.z;
+						
+				// Remap shadow map space coordinate from -1...1 to 0...1
+				shadowMapCoord.xyz = shadow_coord.xyz / shadow_coord.w * vec3( 0.5 ) + 0.5;
 				shadowMapCoord.w = shadow_coord.w;
 				
-		
-				// Check that the position is inside the cascade  -- TODO: Change this to use DEPTH instead of XY
-			    if ( shadowMapCoord.x >= 0.0 && shadowMapCoord.y >= 0.0 && shadowMapCoord.x <= 1.0 && shadowMapCoord.y <= 1.0 ) {
+				// Check that the position is inside the cascade space
+			    if (	shadowMapCoord.x >= 0.0 && shadowMapCoord.x <= 1.0 && 
+						shadowMapCoord.y >= 0.0 && shadowMapCoord.y <= 1.0 && 
+						shadowMapCoord.z >= 0.0 && shadowMapCoord.z <= 1.0 ) {
 			
 					plane = p;
 					break;
@@ -150,11 +151,11 @@ void main()
 				shadow		= 0.0;
 				
 				// Depth in shadow map space
-				linear_depth		= ( shadowMapCoord.z / shadowMapCoord.w );
+				linear_depth		= shadow_coord.z / shadow_coord.w;
 
-				if ( plane == 0 ) depth_bias = 0.0005;
-				if ( plane == 1 ) depth_bias = 0.0001;
-				if ( plane == 2 ) depth_bias = 0.00001;
+				if ( plane == 0 ) depth_bias = 0.0;//005;
+				if ( plane == 1 ) depth_bias = 0.0;//001;
+				if ( plane == 2 ) depth_bias = 0.0;//0001;
 				
 				float bias = depth_bias;
 				
@@ -168,25 +169,10 @@ void main()
 				
 				shadow = shadow_depth < linear_depth - bias ? 1.0 : 0.0;
 				
-				// Depth difference fade
-				if ( shadow > 0.0 ) {
-					
-					// Calculate shadow surface position in world space
-					float shadowMapRangeP	= uShadowClipValues[plane].z;
-				
-					float lim = 0.05 * shadowMapRange0 / shadowMapRangeP;
-					lim = smoothstep( 0.0, lim, depth_diff );
-					
-					shadow -= lim;	
-					shadow = max( 0.0, shadow );
-				
-				}
-				
-				//sample_value -= max( 0.0, shadow * 0.5 );
-				
+			
 				shadowedSamples += shadow;
 				
-				// Bdebug
+				// Debug
 				//if ( shadow > 0.0 ) {
 					
 				//	if ( plane == 0 ) outValue = vec4( 1.0, 0.0, 0.0, 1.0 );
@@ -204,17 +190,23 @@ void main()
 		
 	}
 	
-	float shadowedValue = shadowedSamples * cSampleStep;	// Percentage of shadowed samples out of all <cSampleCount> samples
+	float shadowedValue = shadowedSamples * cSampleStep;						// Percentage of shadowed samples out of all <cSampleCount> samples
 	shadowedValue		= inverse_pow( shadowedValue, uShadowPower );			// Control shadow strength
 	shadowedValue		= smoothstep( 0.0, uShadowTreshold, shadowedValue );	// Control the treshold for maximum shadow strength
 	
-	total_value *= 1.0 - shadowedValue;						// Multiply the total fog value by the inverse of the shadowed value
+	//total_value *= 1.0 - shadowedValue;						// Multiply the total fog value by the inverse of the shadowed value
 	
 	// Fog colour by light colour
 	float val		= max( 0.0, dot( viewRay, -uLightDirection ));
-	vec3 fogColour	= mix( v_vColour.rgb * 0.5, uLightColour.rgb, pow( val, 5.0 ));
+	vec3 fogColour	= mix( v_vColour.rgb, uLightColour.rgb, pow( val, 5.0 ));
+	
+	// Fade lit fog colour to shadowed fog (ambient) colour by the shadowed value
+	fogColour = mix( fogColour, uAmbientColour.rgb, shadowedValue );
 	
 	vec4 outColour = vec4( fogColour.rgb, total_value );
+	
+	// Debug output
+	//outColour = outValue;
 	
 	// TEST OUTPUT
 	//outColour = vec4( vec3( total_value ), 1.0 );

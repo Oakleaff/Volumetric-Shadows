@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"MatrixFunctions",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"MatrixFunctions",
+  "parent":{
+    "name":"Libraries",
+    "path":"folders/Scripts/Libraries.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"IcosphereMesh",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"IcosphereMesh",
+  "parent":{
+    "name":"Libraries",
+    "path":"folders/Scripts/Libraries.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

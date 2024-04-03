@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"DebugFunctions",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"DebugFunctions",
+  "parent":{
+    "name":"Libraries",
+    "path":"folders/Scripts/Libraries.yy",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

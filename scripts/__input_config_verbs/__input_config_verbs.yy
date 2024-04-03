@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"__input_config_verbs",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"__input_config_verbs",
+  "parent":{
+    "name":"Volumetrix",
+    "path":"Volumetrix.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}

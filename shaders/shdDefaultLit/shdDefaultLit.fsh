@@ -10,8 +10,6 @@ varying vec3	v_vNormal;
 varying vec3	v_vPosition;
 varying vec3	v_vLocalNormal;
 varying vec3	v_vLocalPosition;
-
-varying vec3	v_vFogValues;				// RGB, A = fog value
 varying vec3	v_vCamPosition;
 varying vec4	v_vShadowCoord[3];
 varying float	v_vDepthValue;
@@ -32,15 +30,18 @@ uniform float	uEnableLighting;
 uniform vec4	uAmbientColour;
 uniform vec4	uLightColour;
 uniform vec3	uLightDirection;
+uniform float	uLightData[168];
+const int		cMaxLights = 24;
 
 // Material
+uniform vec4		uFadeColour;
 uniform float		uTexCoord[4];
 
-
-
+	
 float inverse_pow( float a, float b ) {
 	return 1.0 - pow( 1.0 - a, b );
 }
+
 
 // texture coordinate scale
 vec2 get_texture_coord( vec2 pos, float texCoord[4] ) {
@@ -57,6 +58,7 @@ vec2 get_texture_coord( vec2 pos, float texCoord[4] ) {
 	float V = V0 + ( V1 - V0 ) * pos.y;
 	
     return vec2( U, V );
+	
 }
 
 // Pack depth
@@ -73,7 +75,7 @@ float get_depth( vec3 v ) {
 // Smooth shadows
 float get_smooth_shadow( sampler2D shadowMap, int plane, vec2 coord, float currentDepth, float bias ) {
 	
-	float pixel = 1.0 / uShadowMapSize[ plane ];
+	float pixel = 2.0 / uShadowMapSize[ plane ];
 
 	int xx, yy;
 		
@@ -115,40 +117,54 @@ vec4 get_lighting( vec3 worldPos, vec3 normal ) {
 	
 	lightColour			= mix( uAmbientColour, uLightColour, lightValue );
 	
+	
+	
 	return lightColour;
 	
 }
 
 
 
+
+
 void main()
 {
 	
-	// Base colour
-	vec4 texColour	= texture2D( gm_BaseTexture, get_texture_coord( v_vTexCoord, uTexCoord ));
-	vec4 baseColour	= texColour * v_vVertexColour;
+	// Triplanar mapping
+	float vec_x = abs( v_vLocalNormal.x );
+	float vec_y = abs( v_vLocalNormal.y );
+	float vec_z = abs( v_vLocalNormal.z );
+	float vec_max = max( vec_x, max( vec_y, vec_z ));
+	
+	vec2 tri_uv = vec2( 0.0 );
+	if		( vec_max == vec_x ) tri_uv = mod( vec2( v_vLocalPosition.y, v_vLocalPosition.z ), 32.0 ) / 32.0;
+	else if ( vec_max == vec_y ) tri_uv = mod( vec2( v_vLocalPosition.x, v_vLocalPosition.z ), 32.0 ) / 32.0;
+	else if ( vec_max == vec_z ) tri_uv = mod( vec2( v_vLocalPosition.x, v_vLocalPosition.y ), 32.0 ) / 32.0;
+	
+	// Colour from texture
+	vec4 texColour = texture2D( gm_BaseTexture, get_texture_coord( tri_uv, uTexCoord ));
 	
 	// Output colour
-	vec4 outColour = baseColour;
-	
+	vec4 baseColour	= texColour * v_vVertexColour;
+	vec4 outColour	= baseColour;
 	
 	// Get lighting
 	vec4 lightColour = get_lighting( v_vPosition, v_vNormal );
 	
-
+	
 	// Shadows 
 	int plane = -1;
 	int p;
-	vec2 coord;
+	vec3 coord;
 	
 	// Choose closest shadow cascade
 	for ( p = 0; p < cMaxCascades; p += 1 ) {
 		
 		// Get coordinate in shadow map space
-		coord = v_vShadowCoord[p].xy / v_vShadowCoord[p].w * vec2( 0.5, 0.5 ) + 0.5;
+		coord = v_vShadowCoord[p].xyz / v_vShadowCoord[p].w * vec3( 0.5 ) + 0.5;
 		
-		// Check that the position is inside the cascade  -- TODO: Change this to use DEPTH instead of XY
-	    if ( coord.x >= 0.0 && coord.y >= 0.0 && coord.x <= 1.0 && coord.y <= 1.0 ) {
+		// Check that the position is inside the cascade
+	    if ( coord.x >= 0.0 && coord.y >= 0.0 && coord.x <= 1.0 && coord.y <= 1.0 && coord.z >= 0.0 && coord.z <= 1.0 ) {
 			
 			plane = p;
 			break;
@@ -176,9 +192,9 @@ void main()
 		
 		float bias = max( depthBias * ( 1.0 - dot( v_vNormal, uLightDirection )), depthBias );
 		
-		if ( plane == 0 )		shadow = get_smooth_shadow( uShadowMap0, plane, coord, linearDepth, bias );
-		else if ( plane == 1 )	shadow = get_smooth_shadow( uShadowMap1, plane, coord, linearDepth, bias );
-		else if ( plane == 2 )	shadow = get_smooth_shadow( uShadowMap2, plane, coord, linearDepth, bias );
+		if ( plane == 0 )		shadow = get_smooth_shadow( uShadowMap0, plane, coord.xy, linearDepth, bias );
+		else if ( plane == 1 )	shadow = get_smooth_shadow( uShadowMap1, plane, coord.xy, linearDepth, bias );
+		else if ( plane == 2 )	shadow = get_smooth_shadow( uShadowMap2, plane, coord.xy, linearDepth, bias );
 		
 		// Only apply shadows on faces facing the light
 		float normal_factor = max( 0.0, dot( v_vNormal, -uLightDirection ));
@@ -188,20 +204,24 @@ void main()
 		// Multiply by light
 		if ( uEnableLighting == 1.0 ) {
 			
-			// Fade to ambient colour for shadows
+			// Fade to ambient colour in shadow
 			lightColour = mix( lightColour, uAmbientColour, smoothstep( 0.1, 1.0, shadow ));
-			
 			outColour *= lightColour;
 		}
 		
+		// Debug shadow map output
+		//if ( plane == 0 )		outColour.rgb = texture2D( uShadowMap0, coord.xy ).rgb;
+		//else if ( plane == 1 )	outColour.rgb = texture2D( uShadowMap1, coord.xy ).rgb;
+		//else if ( plane == 2 )	outColour.rgb = texture2D( uShadowMap2, coord.xy ).rgb;
 	}
-	
+
+	//
 	gl_FragData[0] = outColour;
 	
-	// Visualize world position
-	//float R = smoothstep( 0.9, 1.0, abs( 0.5 - mod( v_vPosition.x * 0.1, 1.0 )) * 2.0 );
-	//float G = smoothstep( 0.9, 1.0, abs( 0.5 - mod( v_vPosition.y * 0.1, 1.0 )) * 2.0 );
-	//float B = smoothstep( 0.9, 1.0, abs( 0.5 - mod( v_vPosition.z * 0.1, 1.0 )) * 2.0 );
-	//gl_FragData[0] = vec4( R, G, B, 1.0 );
+	// Depth value
+	gl_FragData[1] = vec4( pack_depth( v_vDepthValue ), 1.0 );
+	
+	
+	
 	
 }

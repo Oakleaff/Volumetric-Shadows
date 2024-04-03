@@ -1,0 +1,13 @@
+{
+  "$GMScript":"",
+  "%Name":"Settings",
+  "isCompatibility":false,
+  "isDnD":false,
+  "name":"Settings",
+  "parent":{
+    "name":"Volumetrix",
+    "path":"Volumetrix.yyp",
+  },
+  "resourceType":"GMScript",
+  "resourceVersion":"2.0",
+}
