@@ -28,12 +28,13 @@ sampleNoise		= 1.0;
 useBlueNoise	= 1.0;
 shadowPower		= 2.0;
 shadowTreshold	= 0.2;
-fogValueOutput	= 0.0;
 
 
-drawBlend	= true;
-drawBlur	= true;
+
+drawBlend	= false;
+drawBlur	= false;
 blurRadius	= 5.0;
+fogValueOutput	= true;
 
 // Debug view
 dbg_view( "Parameters", true, window_get_width() - 300, 10, 300, 320 );
