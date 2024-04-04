@@ -33,9 +33,6 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":null,
-  "spriteMaskId":{
-    "name":"sprMask8",
-    "path":"sprites/sprMask8/sprMask8.yy",
-  },
+  "spriteMaskId":null,
   "visible":false,
 }

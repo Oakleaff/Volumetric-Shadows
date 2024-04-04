@@ -340,7 +340,7 @@ function camera_update() {
 	/// @function ShadowMap()
 	function ShadowMap() constructor {
 	
-		size			= 1024 * 2;
+		size			= 2048;
 		near			= 1;		
 		far				= 10;	
 	

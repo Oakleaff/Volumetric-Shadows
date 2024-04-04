@@ -28,6 +28,7 @@ sampleNoise		= 1.0;
 useBlueNoise	= 1.0;
 shadowPower		= 2.0;
 shadowTreshold	= 0.2;
+fogValueOutput	= 0.0;
 
 
 drawBlend	= true;
@@ -52,6 +53,8 @@ dbg_checkbox( ref_create( self, "drawBlend" ), "Additive blend" );
 
 dbg_checkbox( ref_create( self, "useBlueNoise" ),	"Use blue noise" );
 dbg_checkbox( ref_create( self, "sampleNoise" ),	"Use noise for fog volume" );
+
+dbg_checkbox( ref_create( self, "fogValueOutput" ),	"Output fog value" );
 
 dbg_color( ref_create( Level, "fogColour" ), "Fog Colour" );
 
@@ -99,6 +102,7 @@ function render_instances( shadow_pass = false ) {
 	update_shader_parameters( shdDefaultLit );
 	shader_set_ext( shdDefaultLit );
 	shader_set_f_array( "uTexCoord", Level.texture_uv );
+	shader_set_f( "uEnableShadows", enableShadows ? 1.0 : 0.0 );
 	
 	camera_apply( Camera.camera );
 	

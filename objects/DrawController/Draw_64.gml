@@ -15,8 +15,8 @@ draw_surface_ext( defaultBuffer,	0, 0, 1, 1, 0, c_white, 1 );
 			update_shader_parameters( shdScreenSpaceFog );
 			shader_set( shdScreenSpaceFog );
 			
-				shader_set_f( "uFogStart",	0.0 );
-				shader_set_f( "uFogEnd",	METER * 50.0 );
+				shader_set_f( "uFogStart",	METER * 1.0 );
+				shader_set_f( "uFogEnd",	METER * 100.0 );
 		
 				
 				shader_set_f( "uEnableShadows",		enableShadows	 );
@@ -25,7 +25,10 @@ draw_surface_ext( defaultBuffer,	0, 0, 1, 1, 0, c_white, 1 );
 			
 				shader_set_f( "uUseBlueNoise",		useBlueNoise ? 1.0 : 0.0 );
 				shader_set_f( "uSampleNoise",		sampleNoise ? 1.0 : 0.0 );
-	
+				
+				shader_set_f( "uOutputFogValue",		fogValueOutput ? 1.0 : 0.0 );
+				
+				
 				// Fog colour is determined by the surface draw colour
 				draw_surface_ext( depthBuffer, 0, 0, 1.0 / fogBufferScale, 1.0 / fogBufferScale, 0, Level.fogColour, 1 );
 			shader_reset();

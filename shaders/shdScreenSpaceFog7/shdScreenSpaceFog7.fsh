@@ -42,7 +42,6 @@ uniform float uSampleNoise;
 uniform float uUseBlueNoise;
 uniform float uOutputFogValue;
 
-const float cCamDistanceFactor	= 1.0;
 const int cSampleCount			= 24;
 const float cSampleStep			= 1.0 / float( cSampleCount );
 
@@ -91,7 +90,6 @@ void main()
 	float fragDistance	= mix( uCamNear, uCamFar, fragDepth );
 	vec3 rayEndPosition = v_vCamPosition + viewRay * fragDistance;
 
-	// Calculate base fog value for the fragment - normal linear fog equation
 	float baseFogValue = clamp( ( fragDistance - uFogStart ) / ( uFogEnd - uFogStart ), 0.0, 1.0 );
 	
 	
@@ -101,6 +99,7 @@ void main()
 	vec4	shadowMapCoord;
 	float	bias, depth_bias, linear_depth;
 	vec4	shadow_coord;
+	float	shadowMapRange0 = uShadowClipValues[0].z;
 	float	shadowedSamples = 0.0;
 	bias = 0.0;
 	
@@ -163,10 +162,9 @@ void main()
 				linear_depth		= shadow_coord.z / shadow_coord.w;
 
 				// Biasing might be necessary
-				if ( plane == 0 ) bias = 0.0005;
-				if ( plane == 1 ) bias = 0.0001;
-				if ( plane == 2 ) bias = 0.00001;
-			
+				//if ( plane == 0 ) depth_bias = 0.0;
+				//if ( plane == 1 ) depth_bias = 0.001;
+				//if ( plane == 2 ) depth_bias = 0.00001;
 				
 				float shadow_depth = 0.0;
 		
@@ -195,14 +193,22 @@ void main()
 	float val		= max( 0.0, dot( viewRay, -uLightDirection ));
 	vec3 fogColour	= mix( v_vColour.rgb, uLightColour.rgb, pow( val, 5.0 ));
 	
-	// Use ambient colour in unlit areas
-	fogColour = mix( fogColour, uAmbientColour.rgb, shadowedValue );
+	// Fade lit fog colour to shadowed fog (ambient) colour by the shadowed value
+	//fogColour = mix( fogColour, uAmbientColour.rgb, shadowedValue );
 	
 	// Multiply by the fragment base fog value
-	total_value *= baseFogValue;
+	//total_value *= baseFogValue;
 
 	//vec4 outColour = vec4( fogColour, total_value );
-	vec4 outColour = vec4( vec3( fogColour ), total_value );
+	vec4 outColour = vec4( vec3( fogColour ), total_value * ( 1.0 - shadowedValue ) );
+	
+
+	// TEST OUTPUT
+	//outColour = vec4( vec3( total_value ), 1.0 );
+	
+	//if ( plane == 0 ) outColour = vec4( 1.0, 0.0, 0.0, 1.0 );
+	//if ( plane == 1 ) outColour = vec4( 0.0, 1.0, 0.0, 1.0 );
+	//if ( plane == 2 ) outColour = vec4( 0.0, 0.0, 1.0, 1.0 );
 	
 	if ( uOutputFogValue == 1.0 ) outColour = vec4( vec3( total_value * ( 1.0 - shadowedValue ) ), 1.0 );
 

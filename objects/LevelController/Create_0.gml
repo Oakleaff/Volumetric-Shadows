@@ -31,5 +31,8 @@ repeat ( 20 ) {
 	instance_create( 0, 0, oShape );
 }
 
+var _shape = instance_create_3d( 0, 0, 0, oShape );
+_shape.transformMatrix = matrix_build( 0, 0, -METER * 10, 0, 0, 0, METER * 50, METER * 50, 5 );
+
 
 global.loadState[ LevelController ] = true;

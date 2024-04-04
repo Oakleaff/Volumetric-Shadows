@@ -158,20 +158,23 @@ void main()
 	// Shadows 
 	int plane = -1;
 	int p;
-	vec3 coord;
+	vec3 shadowMapCoord;
 	
 	// Choose closest shadow cascade
 	for ( p = 0; p < cMaxCascades; p += 1 ) {
 		
 		// Get coordinate in shadow map space
-		coord = v_vShadowCoord[p].xyz / v_vShadowCoord[p].w * vec3( 0.5 ) + 0.5;
+		shadowMapCoord = v_vShadowCoord[p].xyz / v_vShadowCoord[p].w * vec3( 0.5 ) + 0.5;
 		
-		// Check that the position is inside the cascade
-	    if ( coord.x >= 0.0 && coord.y >= 0.0 && coord.x <= 1.0 && coord.y <= 1.0 && coord.z >= 0.0 && coord.z <= 1.0 ) {
+		// Check that the position is inside the cascade space
+		if (	shadowMapCoord.x >= 0.0 && shadowMapCoord.x <= 1.0 && 
+				shadowMapCoord.y >= 0.0 && shadowMapCoord.y <= 1.0 && 
+				shadowMapCoord.z >= 0.0 && shadowMapCoord.z <= 1.0 ) {
 			
 			plane = p;
 			break;
 		}
+		
 	}
 	
 	// No available shadow maps
@@ -190,14 +193,14 @@ void main()
 		float linearDepth		= ( v_vShadowCoord[plane].z / v_vShadowCoord[plane].w );
 
 		if ( plane == 0 ) depthBias = 0.0005;
-		if ( plane == 1 ) depthBias = 0.0002;
+		if ( plane == 1 ) depthBias = 0.0004;
 		if ( plane == 2 ) depthBias = 0.01;
 		
 		float bias = max( depthBias * ( 1.0 - dot( v_vNormal, uLightDirection )), depthBias );
 		
-		if ( plane == 0 )		shadow = get_smooth_shadow( uShadowMap0, plane, coord.xy, linearDepth, bias );
-		else if ( plane == 1 )	shadow = get_smooth_shadow( uShadowMap1, plane, coord.xy, linearDepth, bias );
-		else if ( plane == 2 )	shadow = get_smooth_shadow( uShadowMap2, plane, coord.xy, linearDepth, bias );
+		if ( plane == 0 )		shadow = get_smooth_shadow( uShadowMap0, plane, shadowMapCoord.xy, linearDepth, bias );
+		else if ( plane == 1 )	shadow = get_smooth_shadow( uShadowMap1, plane, shadowMapCoord.xy, linearDepth, bias );
+		else if ( plane == 2 )	shadow = get_smooth_shadow( uShadowMap2, plane, shadowMapCoord.xy, linearDepth, bias );
 		
 		// Only apply shadows on faces facing the light
 		float normal_factor = max( 0.0, dot( v_vNormal, -uLightDirection ));

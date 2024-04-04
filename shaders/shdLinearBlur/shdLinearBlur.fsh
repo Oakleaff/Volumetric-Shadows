@@ -26,7 +26,7 @@ void main()
 	total_colour /= 2.0 * ( uBlurRadius ) + 1.0;
 	
 	vec4 final_colour	= v_vColour * total_colour;
-	final_colour.a		= texColour.a;
+	//final_colour.a		= texColour.a;
 	
     gl_FragColor = final_colour;
 }
